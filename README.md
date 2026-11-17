@@ -92,6 +92,20 @@ dotnet run --project RegionLivePreview
 `系统设置 → 隐私与安全性 → 屏幕与系统音频录制`，允许 `RegionLivePreview`
 （开发运行时也可能是 `dotnet` 或承载它的终端）后重新启动程序。
 
+如果权限开关已经开启，但程序仍一直提示需要授权，通常是 macOS 保留了旧版本的
+ad-hoc 签名授权记录。完全退出程序后执行：
+
+```bash
+tccutil reset ScreenCapture com.regionlivepreview.app
+```
+
+这会只重置 RegionLivePreview 的屏幕录制权限，不影响其他应用。随后重新启动
+`/Applications/RegionLivePreview.app` 并按系统提示重新授权。更新安装包后如果再次
+出现该问题，也请执行相同步骤。
+
+要让授权在后续更新中保持稳定，发布包应使用 Developer ID Application 和
+Developer ID Installer 证书签名，并通过 Apple 公证。
+
 构建可分发的 `.app`：
 
 ```bash
