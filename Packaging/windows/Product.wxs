@@ -17,8 +17,6 @@
 
     <Icon Id="AppIcon" SourceFile="$(var.ProductIcon)" />
     <Property Id="ARPPRODUCTICON" Value="AppIcon" />
-    <Property Id="ARPNOMODIFY" Value="1" />
-
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFiles64Folder">
         <Directory Id="INSTALLFOLDER" Name="RegionLivePreview" />
