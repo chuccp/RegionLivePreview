@@ -122,6 +122,8 @@
 
                         <CheckBox x:Name="DefaultClickThroughCheck"
                                   Content="新预览窗口默认开启鼠标穿透" />
+                        <CheckBox x:Name="DefaultLockAspectRatioCheck"
+                                  Content="新预览窗口默认固定捕获比例" />
                         <CheckBox x:Name="RestorePreviewsCheck"
                                   Content="启动时恢复上次的预览窗口" />
                         <CheckBox x:Name="AutoOpenSelectionCheck"

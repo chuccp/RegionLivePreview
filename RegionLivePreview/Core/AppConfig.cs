@@ -12,6 +12,8 @@ public sealed class AppConfig
 
     public bool DefaultClickThrough { get; set; }
 
+    public bool DefaultLockAspectRatio { get; set; } = true;
+
     /// <summary>捕获分辨率缩放：0.5 / 0.75 / 1.0。</summary>
     public double CaptureScale { get; set; } = 1.0;
 
@@ -85,6 +87,8 @@ public sealed class PreviewWindowState
     public double Opacity { get; set; } = 1.0;
 
     public bool ClickThrough { get; set; }
+
+    public bool LockAspectRatio { get; set; } = true;
 
     [JsonIgnore]
     public bool IsUsable => RegionWidth >= 4 && RegionHeight >= 4;

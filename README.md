@@ -12,6 +12,8 @@
 - **多显示器选区**：每个显示器一个半透明遮罩，支持跨显示器拖选；按物理像素记录选区，适配 125% / 150% / 200% 等 DPI 缩放。
 - **实时悬浮预览**：
   - 无边框、可拖动；Windows 置顶，macOS 使用可被会议软件选中的普通窗口层级；
+  - 拖动四边或四角自由调整窗口大小；
+  - 每个窗口可开启“固定捕获比例”，缩放时始终保持原区域宽高比；
   - 滚轮等比缩放窗口；
   - 右上角关闭按钮；
   - 单窗口不透明度 30% – 100%；
@@ -107,6 +109,46 @@ CODESIGN_IDENTITY="Developer ID Application: ..." ./scripts/build-macos.sh
 `Native/macOS/RegionLivePreviewMac.m`，并将 ScreenCaptureKit 桥接动态库放入应用包。
 未经公证的本地构建可能需要在“隐私与安全性”中手动允许打开。
 
+### 安装包
+
+Windows MSI（需要 Windows 和 WiX Toolset v3）：
+
+```powershell
+choco install wixtoolset -y
+.\scripts\build-msi.ps1
+```
+
+macOS PKG：
+
+```bash
+# Apple Silicon
+ARCHITECTURE=arm64 ./scripts/build-pkg.sh
+
+# Intel
+ARCHITECTURE=x64 ./scripts/build-pkg.sh
+```
+
+安装包输出到 `artifacts/installers/`。GitHub Actions 工作流
+`.github/workflows/build-installers.yml` 会在手动触发或推送 `v*` 标签时自动构建
+MSI、arm64 PKG 和 x64 PKG；标签构建还会自动创建 GitHub Release 并上传三个安装包。
+
+可选证书与签名 Secrets：
+
+- Windows Authenticode：
+  - `WINDOWS_CERTIFICATE_PFX_BASE64`：包含私钥的代码签名 PFX，Base64 编码
+  - `WINDOWS_CERTIFICATE_PASSWORD`：PFX 密码
+- macOS Developer ID：
+  - `APPLE_CERTIFICATE_P12_BASE64`：包含 Developer ID Application 和
+    Developer ID Installer 私钥的 `.p12`，Base64 编码
+  - `APPLE_CERTIFICATE_PASSWORD`：`.p12` 密码
+- `APPLE_DEVELOPER_ID_APPLICATION`、`APPLE_DEVELOPER_ID_INSTALLER`
+- `APPLE_ID`、`APPLE_TEAM_ID`、`APPLE_APP_PASSWORD`
+
+配置 Windows PFX 后，工作流会为 `RegionLivePreview.exe` 和 MSI 添加 Authenticode
+时间戳签名。配置 Apple 证书后，`.app` 和 `.pkg` 会分别签名；再配置 Apple ID、
+Team ID 与应用专用密码后会自动公证并装订票据。未配置这些 Secrets 时仍会生成
+未签名或临时签名的安装包。
+
 ## 使用
 
 1. 手动启动程序后，默认会直接进入选区模式（程序本身没有主窗口，选择/取消后在系统托盘或 macOS 菜单栏常驻）。
@@ -115,7 +157,9 @@ CODESIGN_IDENTITY="Developer ID Application: ..." ./scripts/build-macos.sh
 4. 选区遮罩顶部会提示：快捷键、自动选区等可在**托盘图标/菜单栏图标 → 设置…**中修改。
 5. 在预览窗口中：
    - 按住左键拖动窗口位置；
-   - 滚轮缩放窗口大小；
+   - 拖动四边或四角调整窗口大小；
+   - `⋯` 中的“固定捕获比例”控制拖拽缩放时是否锁定原区域宽高比；
+   - 滚轮等比缩放窗口大小；
    - `⋯` 打开选项：鼠标穿透、不透明度；
    - `✕` 关闭当前预览。
 6. 鼠标穿透开启后，预览窗口不再响应鼠标操作；可在托盘/菜单栏菜单“切换所有窗口鼠标穿透”中统一恢复。

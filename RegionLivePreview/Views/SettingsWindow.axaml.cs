@@ -14,6 +14,7 @@ public partial class SettingsWindow : Window
     private readonly Slider _opacitySlider;
     private readonly TextBlock _opacityLabel;
     private readonly CheckBox _defaultClickThroughCheck;
+    private readonly CheckBox _defaultLockAspectRatioCheck;
     private readonly CheckBox _restorePreviewsCheck;
     private readonly CheckBox _autoOpenSelectionCheck;
     private readonly CheckBox _autoStartCheck;
@@ -38,6 +39,7 @@ public partial class SettingsWindow : Window
         _opacitySlider = this.FindControl<Slider>("OpacitySlider")!;
         _opacityLabel = this.FindControl<TextBlock>("OpacityLabel")!;
         _defaultClickThroughCheck = this.FindControl<CheckBox>("DefaultClickThroughCheck")!;
+        _defaultLockAspectRatioCheck = this.FindControl<CheckBox>("DefaultLockAspectRatioCheck")!;
         _restorePreviewsCheck = this.FindControl<CheckBox>("RestorePreviewsCheck")!;
         _autoOpenSelectionCheck = this.FindControl<CheckBox>("AutoOpenSelectionCheck")!;
         _autoStartCheck = this.FindControl<CheckBox>("AutoStartCheck")!;
@@ -77,6 +79,7 @@ public partial class SettingsWindow : Window
         _opacitySlider.Value = config.DefaultOpacity;
         _opacityLabel.Text = $"{config.DefaultOpacity:P0}";
         _defaultClickThroughCheck.IsChecked = config.DefaultClickThrough;
+        _defaultLockAspectRatioCheck.IsChecked = config.DefaultLockAspectRatio;
         _restorePreviewsCheck.IsChecked = config.RestorePreviewsOnStartup;
         _autoOpenSelectionCheck.IsChecked = config.AutoOpenSelectionOnStartup;
         _autoStartCheck.IsChecked = config.AutoStart;
@@ -204,6 +207,7 @@ public partial class SettingsWindow : Window
             },
             DefaultOpacity = Math.Clamp(_opacitySlider.Value, 0.3, 1.0),
             DefaultClickThrough = _defaultClickThroughCheck.IsChecked == true,
+            DefaultLockAspectRatio = _defaultLockAspectRatioCheck.IsChecked == true,
             AutoStart = _autoStartCheck.IsChecked == true,
             LoggingEnabled = _loggingCheck.IsChecked == true,
             RestorePreviewsOnStartup = _restorePreviewsCheck.IsChecked == true,
