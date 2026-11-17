@@ -8,6 +8,11 @@ $PSNativeCommandUseErrorActionPreference = $true
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $project = Join-Path $projectRoot "RegionLivePreview/RegionLivePreview.csproj"
+$wixArchitecture = switch ($Runtime) {
+    "win-x64" { "x64" }
+    "win-arm64" { "arm64" }
+    default { throw "Unsupported Windows runtime: $Runtime" }
+}
 $version = (
     Select-String -Path $project -Pattern "<Version>([^<]+)</Version>" |
     Select-Object -First 1
@@ -91,10 +96,11 @@ $productWixobj = Join-Path $objectDir "Product.wixobj"
 $output = Join-Path $installerDir "RegionLivePreview-$version-$Runtime.msi"
 
 & (Join-Path $wixBin "candle.exe") `
-    -arch x64 `
+    -arch $wixArchitecture `
     "-dSourceDir=$publishDir" `
     "-dProductIcon=$icon" `
     "-dProductVersion=$version" `
+    "-dMsiPlatform=$wixArchitecture" `
     -out $productWixobj `
     $productWxs
 

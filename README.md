@@ -116,6 +116,9 @@ Windows MSI（需要 Windows 和 WiX Toolset v3）：
 ```powershell
 choco install wixtoolset -y
 .\scripts\build-msi.ps1
+
+# Windows ARM64
+.\scripts\build-msi.ps1 -Runtime win-arm64
 ```
 
 macOS PKG：
@@ -130,7 +133,8 @@ ARCHITECTURE=x64 ./scripts/build-pkg.sh
 
 安装包输出到 `artifacts/installers/`。GitHub Actions 工作流
 `.github/workflows/build-installers.yml` 会在手动触发或推送 `v*` 标签时自动构建
-MSI、arm64 PKG 和 x64 PKG；标签构建还会自动创建 GitHub Release 并上传三个安装包。
+Windows x64/ARM64 MSI、macOS arm64/x64 PKG；标签构建还会自动创建 GitHub Release
+并上传四个安装包。
 
 可选证书与签名 Secrets：
 
