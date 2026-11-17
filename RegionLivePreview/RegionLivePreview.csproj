@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <LangVersion>latest</LangVersion>
+        <RootNamespace>RegionLivePreview</RootNamespace>
+        <AssemblyName>RegionLivePreview</AssemblyName>
+        <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <Version>1.0.0</Version>
+        <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+        <!-- 窗口使用带参数的构造函数在代码中创建，无需 XAML 运行时加载器所需的无参构造。 -->
+        <NoWarn>$(NoWarn);AVLN3001</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <AvaloniaResource Include="Assets\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia" Version="11.3.18" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.3.18" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.18" />
+    </ItemGroup>
+
+</Project>

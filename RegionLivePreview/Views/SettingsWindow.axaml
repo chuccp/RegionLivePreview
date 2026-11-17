@@ -1,0 +1,178 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="RegionLivePreview.Views.SettingsWindow"
+        Title="设置 - RegionLivePreview"
+        Width="590"
+        Height="720"
+        CanResize="False"
+        CanMinimize="False"
+        CanMaximize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterScreen"
+        Background="#0F1218">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <Border Grid.Row="0" Padding="24,22,24,12">
+            <StackPanel Spacing="4">
+                <TextBlock Text="设置"
+                           FontSize="22"
+                           FontWeight="SemiBold"
+                           Foreground="#F5FFFFFF" />
+                <TextBlock Text="配置快捷键、捕获参数与预览窗口默认行为"
+                           FontSize="12"
+                           Foreground="#8A93A6" />
+            </StackPanel>
+        </Border>
+
+        <ScrollViewer Grid.Row="1"
+                      Margin="24,0,16,0"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="12" Margin="0,0,8,16">
+
+                <Border Classes="card">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="全局快捷键" Classes="sectionTitle" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox x:Name="HotkeyBox"
+                                     IsReadOnly="True"
+                                     FontSize="14"
+                                     Padding="12,10"
+                                     Cursor="Hand"
+                                     ToolTip.Tip="点击后按下新的组合键" />
+                            <Button Grid.Column="1"
+                                    Content="重新录制"
+                                    Margin="10,0,0,0"
+                                    Click="OnRecordHotkeyClick" />
+                        </Grid>
+                        <TextBlock Classes="fieldHint"
+                                   Text="点击快捷键框或“重新录制”，然后按下新的组合键；Esc 取消录制。为避免误触，建议使用至少一个修饰键。" />
+                        <TextBlock x:Name="HotkeyError"
+                                   FontSize="12"
+                                   Foreground="#FF7B7B"
+                                   TextWrapping="Wrap"
+                                   IsVisible="False" />
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="card">
+                    <StackPanel Spacing="14">
+                        <TextBlock Text="捕获" Classes="sectionTitle" />
+
+                        <Grid ColumnDefinitions="*,170">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="默认帧率" Classes="fieldLabel" />
+                                <TextBlock Text="数值越高越流畅，CPU 占用也越高。默认 30 fps。"
+                                           Classes="fieldHint" />
+                            </StackPanel>
+                            <ComboBox x:Name="FpsCombo"
+                                      Grid.Column="1"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBoxItem Content="10 fps" />
+                                <ComboBoxItem Content="15 fps" />
+                                <ComboBoxItem Content="30 fps" />
+                                <ComboBoxItem Content="60 fps" />
+                            </ComboBox>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,170">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="画质" Classes="fieldLabel" />
+                                <TextBlock Text="降低捕获分辨率可减少 CPU 占用，预览窗口仍会按原尺寸显示。"
+                                           Classes="fieldHint" />
+                            </StackPanel>
+                            <ComboBox x:Name="QualityCombo"
+                                      Grid.Column="1"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBoxItem Content="100%（原始画质）" />
+                                <ComboBoxItem Content="75%" />
+                                <ComboBoxItem Content="50%" />
+                            </ComboBox>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="card">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="预览窗口" Classes="sectionTitle" />
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="默认不透明度" Classes="fieldLabel" />
+                                <TextBlock Text="范围 30% – 100%，可在每个预览窗口中单独调整。"
+                                           Classes="fieldHint" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1"
+                                        Orientation="Horizontal"
+                                        Spacing="8"
+                                        VerticalAlignment="Center">
+                                <Slider x:Name="OpacitySlider"
+                                        Width="140"
+                                        Minimum="0.3"
+                                        Maximum="1.0"
+                                        TickFrequency="0.05"
+                                        IsSnapToTickEnabled="True" />
+                                <TextBlock x:Name="OpacityLabel"
+                                           Width="40"
+                                           FontSize="12"
+                                           Foreground="#D9FFFFFF"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Grid>
+
+                        <CheckBox x:Name="DefaultClickThroughCheck"
+                                  Content="新预览窗口默认开启鼠标穿透" />
+                        <CheckBox x:Name="RestorePreviewsCheck"
+                                  Content="启动时恢复上次的预览窗口" />
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="card">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="系统" Classes="sectionTitle" />
+                        <CheckBox x:Name="AutoStartCheck"
+                                  Content="开机自动启动（写入当前用户注册表）" />
+                        <CheckBox x:Name="LoggingCheck"
+                                  Content="启用本地错误日志（默认关闭）" />
+                        <TextBlock Classes="fieldHint"
+                                   Text="日志保存在 %AppData%\RegionLivePreview\logs，只记录运行错误，不包含任何画面内容。" />
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="card">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="语言" Classes="sectionTitle" />
+                        <ComboBox SelectedIndex="0" Width="200" IsEnabled="False">
+                            <ComboBoxItem Content="简体中文" />
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border Grid.Row="2"
+                Padding="24,14"
+                BorderBrush="#18FFFFFF"
+                BorderThickness="0,1,0,0">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock x:Name="StatusText"
+                           FontSize="12"
+                           Foreground="#FF7B7B"
+                           TextWrapping="Wrap"
+                           VerticalAlignment="Center"
+                           IsVisible="False" />
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            Spacing="10">
+                    <Button Content="取消"
+                            MinWidth="88"
+                            Click="OnCancelClick" />
+                    <Button Content="保存"
+                            Classes="accent"
+                            MinWidth="88"
+                            Click="OnSaveClick" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

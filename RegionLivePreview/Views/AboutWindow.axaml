@@ -1,0 +1,58 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="RegionLivePreview.Views.AboutWindow"
+        Title="关于 RegionLivePreview"
+        Width="460"
+        SizeToContent="Height"
+        CanResize="False"
+        CanMinimize="False"
+        CanMaximize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterScreen"
+        Background="#0F1218">
+
+    <StackPanel Margin="28,26" Spacing="16">
+        <StackPanel Orientation="Horizontal" Spacing="14">
+            <Image Source="avares://RegionLivePreview/Assets/app-icon.png"
+                   Width="56"
+                   Height="56" />
+            <StackPanel VerticalAlignment="Center" Spacing="3">
+                <TextBlock Text="RegionLivePreview"
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           Foreground="#F2FFFFFF" />
+                <TextBlock Text="区域实时悬浮预览工具"
+                           FontSize="12"
+                           Foreground="#8A93A6" />
+            </StackPanel>
+        </StackPanel>
+
+        <TextBlock Text="框选屏幕上的任意矩形区域，将画面实时渲染到置顶悬浮窗口。仅用于查看，支持鼠标穿透、多预览并发与位置记忆。"
+                   FontSize="13"
+                   LineHeight="21"
+                   Foreground="#CCFFFFFF"
+                   TextWrapping="Wrap" />
+
+        <Border Height="1" Background="#18FFFFFF" />
+
+        <Grid ColumnDefinitions="90,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+            <TextBlock Grid.Row="0" Text="版本" Foreground="#8A93A6" FontSize="12" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="1.0.0" Foreground="#D9FFFFFF" FontSize="12" />
+
+            <TextBlock Grid.Row="1" Text="运行平台" Foreground="#8A93A6" FontSize="12" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="Windows 10 21H2+ / Windows 11" Foreground="#D9FFFFFF" FontSize="12" />
+
+            <TextBlock Grid.Row="2" Text="隐私" Foreground="#8A93A6" FontSize="12" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="纯本地运行，无网络请求、无画面上传、无遥测" Foreground="#D9FFFFFF" FontSize="12" TextWrapping="Wrap" />
+
+            <TextBlock Grid.Row="3" Text="许可证" Foreground="#8A93A6" FontSize="12" />
+            <TextBlock Grid.Row="3" Grid.Column="1" Text="MIT License" Foreground="#D9FFFFFF" FontSize="12" />
+        </Grid>
+
+        <Button Content="关闭"
+                Classes="accent"
+                MinWidth="92"
+                HorizontalAlignment="Right"
+                Click="OnCloseClick" />
+    </StackPanel>
+</Window>

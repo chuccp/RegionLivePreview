@@ -1,0 +1,20 @@
+# Build output
+bin/
+obj/
+publish/
+dist/
+
+# IDE
+.vs/
+.idea/
+*.user
+*.suo
+*.userprefs
+
+# Local test artifacts
+.smoke/
+TestResults/
+
+# OS
+Thumbs.db
+.DS_Store

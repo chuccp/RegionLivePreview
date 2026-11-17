@@ -1,0 +1,72 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="RegionLivePreview.App"
+             RequestedThemeVariant="Dark">
+
+    <Application.Resources>
+        <SolidColorBrush x:Key="AccentBrush" Color="#3D8BFF" />
+        <SolidColorBrush x:Key="MutedTextBrush" Color="#8A93A6" />
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme />
+
+        <Style Selector="Button.iconButton">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Width" Value="26" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Foreground" Value="#E8FFFFFF" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style Selector="Button.iconButton:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#33FFFFFF" />
+        </Style>
+
+        <Style Selector="Button.closeButton:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#CCD64545" />
+        </Style>
+
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="#10FFFFFF" />
+            <Setter Property="BorderBrush" Value="#14FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="18" />
+        </Style>
+
+        <Style Selector="TextBlock.sectionTitle">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#E8FFFFFF" />
+        </Style>
+
+        <Style Selector="TextBlock.fieldLabel">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="#E8FFFFFF" />
+        </Style>
+
+        <Style Selector="TextBlock.fieldHint">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="#8A93A6" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+
+        <Style Selector="Button.accent">
+            <Setter Property="Background" Value="#3D8BFF" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+
+        <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2F7BF0" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+    </Application.Styles>
+</Application>

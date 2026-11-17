@@ -1,0 +1,95 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="RegionLivePreview.Views.PreviewWindow"
+        Title="RegionLivePreview"
+        SystemDecorations="None"
+        CanResize="False"
+        CanMinimize="False"
+        CanMaximize="False"
+        ShowInTaskbar="True"
+        ShowActivated="False"
+        Topmost="True"
+        WindowStartupLocation="Manual"
+        Background="#0B0E14"
+        MinWidth="100"
+        MinHeight="60">
+
+    <Grid x:Name="Root">
+        <Image x:Name="FrameImage"
+               Stretch="Uniform"
+               RenderOptions.BitmapInterpolationMode="HighQuality"
+               IsHitTestVisible="False" />
+
+        <Border x:Name="DragSurface"
+                Background="Transparent"
+                Cursor="SizeAll"
+                PointerPressed="OnDragSurfacePointerPressed"
+                PointerWheelChanged="OnPointerWheelChanged" />
+
+        <Border x:Name="ChromeBar"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Margin="6"
+                Padding="2"
+                Background="#7A0B0E14"
+                CornerRadius="7">
+            <StackPanel Orientation="Horizontal" Spacing="2">
+                <Button x:Name="OptionsButton"
+                        Classes="iconButton"
+                        Content="⋯"
+                        ToolTip.Tip="预览选项" />
+                <Button x:Name="CloseButton"
+                        Classes="iconButton closeButton"
+                        Content="✕"
+                        ToolTip.Tip="关闭预览" />
+            </StackPanel>
+        </Border>
+
+        <Border x:Name="StatusPanel"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Bottom"
+                Margin="10"
+                Padding="10,6"
+                Background="#B30B0E14"
+                CornerRadius="6"
+                IsHitTestVisible="False">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Ellipse Width="7" Height="7" Fill="#3D8BFF" VerticalAlignment="Center" />
+                <TextBlock Text="正在连接屏幕画面…"
+                           FontSize="12"
+                           Foreground="#D9FFFFFF" />
+            </StackPanel>
+        </Border>
+
+        <Border x:Name="ErrorPanel"
+                Margin="16"
+                Padding="14"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Center"
+                Background="#E60F141D"
+                BorderBrush="#66FF6B6B"
+                BorderThickness="1"
+                CornerRadius="8"
+                IsVisible="False"
+                IsHitTestVisible="False">
+            <StackPanel Spacing="6">
+                <TextBlock Text="捕获异常"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           Foreground="#FFFF8A8A" />
+                <TextBlock x:Name="ErrorText"
+                           FontSize="12"
+                           Foreground="#D9FFFFFF"
+                           TextWrapping="Wrap" />
+                <TextBlock Text="可以关闭后重新选择区域；受系统限制的部分窗口可能无法捕获。"
+                           FontSize="11"
+                           Foreground="#8A93A6"
+                           TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+
+        <Border BorderBrush="#403D8BFF"
+                BorderThickness="1"
+                IsHitTestVisible="False" />
+    </Grid>
+</Window>
