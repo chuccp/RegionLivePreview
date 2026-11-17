@@ -3,12 +3,14 @@ using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Threading;
 using RegionLivePreview.Core;
+using RegionLivePreview.Platform;
+using RegionLivePreview.Platform.Mac;
 using RegionLivePreview.Platform.Windows;
 
 namespace RegionLivePreview.Services;
 
 /// <summary>
-/// 基于 GDI BitBlt 的屏幕区域捕获。
+/// Windows 使用 GDI BitBlt，macOS 使用 ScreenCaptureKit。
 /// 捕获循环运行在后台线程，帧缓冲通过 Dispatcher 投递到 UI 线程，避免阻塞渲染线程。
 /// </summary>
 public sealed class ScreenCaptureService : IDisposable
@@ -55,7 +57,7 @@ public sealed class ScreenCaptureService : IDisposable
             return;
         }
 
-        if (!OperatingSystem.IsWindows())
+        if (!OperatingSystem.IsWindows() && !OperatingSystem.IsMacOS())
         {
             ReportError("当前平台暂不支持屏幕捕获。");
             return;
@@ -69,7 +71,18 @@ public sealed class ScreenCaptureService : IDisposable
 
         Logger.Info($"开始捕获：region={_region} output={OutputSize} fps={_fps} scale={_scale}");
         _cts = new CancellationTokenSource();
-        _thread = new Thread(() => CaptureLoop(_cts.Token))
+        var cancellation = _cts;
+        _thread = new Thread(() =>
+        {
+            if (OperatingSystem.IsMacOS())
+            {
+                CaptureMacLoop(cancellation.Token);
+            }
+            else
+            {
+                CaptureWindowsLoop(cancellation.Token);
+            }
+        })
         {
             IsBackground = true,
             Name = "RegionLivePreview.ScreenCapture",
@@ -112,7 +125,7 @@ public sealed class ScreenCaptureService : IDisposable
         }
     }
 
-    private void CaptureLoop(CancellationToken token)
+    private void CaptureWindowsLoop(CancellationToken token)
     {
         var width = OutputSize.Width;
         var height = OutputSize.Height;
@@ -279,6 +292,144 @@ public sealed class ScreenCaptureService : IDisposable
                 NativeMethods.ReleaseDC(IntPtr.Zero, screenDc);
             }
         }
+    }
+
+    private void CaptureMacLoop(CancellationToken token)
+    {
+        var monitor = MonitorService.GetMonitorForRegion(_region);
+        if (monitor is null)
+        {
+            ReportError("未找到所选区域所在的显示器，请重新选择预览区域。");
+            return;
+        }
+
+        var screen = MacNative.GetScreens()
+            .FirstOrDefault(candidate => candidate.DisplayId == monitor.NativeId);
+
+        if (screen.DisplayId == 0)
+        {
+            ReportError("无法确定所选区域对应的 macOS 显示器，请重新选择预览区域。");
+            return;
+        }
+
+        var scaling = monitor.Scaling > 0 ? monitor.Scaling : 1.0;
+        var sourceX = (_region.X - monitor.X) / scaling;
+        var sourceY = (_region.Y - monitor.Y) / scaling;
+        var sourceWidth = _region.Width / scaling;
+        var sourceHeight = _region.Height / scaling;
+
+        IntPtr capture = IntPtr.Zero;
+        try
+        {
+            capture = MacNative.CreateCapture(
+                screen.DisplayId,
+                sourceX,
+                sourceY,
+                sourceWidth,
+                sourceHeight,
+                OutputSize.Width,
+                OutputSize.Height,
+                _fps,
+                out var createError);
+
+            if (capture == IntPtr.Zero)
+            {
+                ReportError(FormatMacCaptureError(createError));
+                return;
+            }
+
+            if (!MacNative.StartCapture(capture, out var startError))
+            {
+                ReportError(FormatMacCaptureError(startError));
+                return;
+            }
+
+            var bufferLength = OutputSize.Width * OutputSize.Height * 4;
+            var frameMilliseconds = 1000.0 / _fps;
+            var clock = Stopwatch.StartNew();
+            var nextFrameAt = 0.0;
+
+            while (!token.IsCancellationRequested)
+            {
+                bool hasPending;
+                lock (_sync)
+                {
+                    hasPending = _pending is not null;
+                }
+
+                if (!hasPending)
+                {
+                    var buffer = RentBuffer(bufferLength);
+                    var result = MacNative.CopyLatestFrame(
+                        capture,
+                        buffer,
+                        out _,
+                        out _,
+                        out var frameError);
+
+                    if (result > 0)
+                    {
+                        lock (_sync)
+                        {
+                            _pending = buffer;
+                        }
+
+                        Dispatcher.UIThread.Post(ConsumePendingFrame);
+                    }
+                    else
+                    {
+                        lock (_sync)
+                        {
+                            if (_freeBuffers.Count < 3)
+                            {
+                                _freeBuffers.Push(buffer);
+                            }
+                        }
+
+                        if (result < 0)
+                        {
+                            ReportError(FormatMacCaptureError(frameError));
+                            break;
+                        }
+                    }
+                }
+
+                nextFrameAt += frameMilliseconds;
+                var now = clock.Elapsed.TotalMilliseconds;
+                var wait = nextFrameAt - now;
+
+                if (wait > 1)
+                {
+                    token.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(Math.Min(wait, 1000)));
+                }
+                else if (wait < -200)
+                {
+                    nextFrameAt = now;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            if (!token.IsCancellationRequested)
+            {
+                Logger.Error("ScreenCaptureKit 捕获线程异常退出。", ex);
+                ReportError("ScreenCaptureKit 捕获异常：" + ex.Message);
+            }
+        }
+        finally
+        {
+            MacNative.DestroyCapture(capture);
+        }
+    }
+
+    private static string FormatMacCaptureError(string? error)
+    {
+        var permissionHint = MacNative.HasScreenCaptureAccess()
+            ? string.Empty
+            : "\n请在“系统设置 → 隐私与安全性 → 屏幕与系统音频录制”中授权，并重新启动程序。";
+        return "ScreenCaptureKit 无法捕获画面："
+            + (string.IsNullOrWhiteSpace(error) ? "未知错误。" : error)
+            + permissionHint;
     }
 
     private byte[] RentBuffer(int length)

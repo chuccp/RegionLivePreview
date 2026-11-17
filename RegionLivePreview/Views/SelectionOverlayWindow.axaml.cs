@@ -5,7 +5,6 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using RegionLivePreview.Core;
 using RegionLivePreview.Platform;
-using RegionLivePreview.Platform.Windows;
 
 namespace RegionLivePreview.Views;
 
@@ -33,9 +32,10 @@ public partial class SelectionOverlayWindow : Window
 
         InitializeComponent();
 
-        Width = Math.Ceiling(monitor.Width / monitor.Scaling);
-        Height = Math.Ceiling(monitor.Height / monitor.Scaling);
-        Position = new PixelPoint(monitor.X, monitor.Y);
+        CaptureBounds = OperatingSystem.IsMacOS() ? monitor.WorkArea : monitor.Bounds;
+        Width = Math.Ceiling(CaptureBounds.Width / monitor.Scaling);
+        Height = Math.Ceiling(CaptureBounds.Height / monitor.Scaling);
+        Position = monitor.PhysicalToWindowPosition(CaptureBounds.Position);
 
         _root = this.FindControl<Grid>("Root")!;
         _dimTop = this.FindControl<Rectangle>("DimTop")!;
@@ -51,6 +51,8 @@ public partial class SelectionOverlayWindow : Window
     }
 
     public MonitorInfo Monitor { get; }
+
+    public PixelRect CaptureBounds { get; }
 
     public void FocusInput()
     {
@@ -173,10 +175,10 @@ public partial class SelectionOverlayWindow : Window
         var selected = selection.Value;
         var scale = Monitor.Scaling;
 
-        var left = (selected.X - Monitor.X) / scale;
-        var top = (selected.Y - Monitor.Y) / scale;
-        var right = (selected.X + selected.Width - Monitor.X) / scale;
-        var bottom = (selected.Y + selected.Height - Monitor.Y) / scale;
+        var left = (selected.X - CaptureBounds.X) / scale;
+        var top = (selected.Y - CaptureBounds.Y) / scale;
+        var right = (selected.X + selected.Width - CaptureBounds.X) / scale;
+        var bottom = (selected.Y + selected.Height - CaptureBounds.Y) / scale;
 
         var holeLeft = Math.Clamp(left, 0, viewWidth);
         var holeTop = Math.Clamp(top, 0, viewHeight);

@@ -1,20 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <OutputType>WinExe</OutputType>
+        <OutputType Condition="$([MSBuild]::IsOSPlatform('Windows'))">WinExe</OutputType>
+        <OutputType Condition="!$([MSBuild]::IsOSPlatform('Windows'))">Exe</OutputType>
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <LangVersion>latest</LangVersion>
         <RootNamespace>RegionLivePreview</RootNamespace>
         <AssemblyName>RegionLivePreview</AssemblyName>
-        <ApplicationIcon>Assets\app.ico</ApplicationIcon>
-        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <ApplicationIcon Condition="$([MSBuild]::IsOSPlatform('Windows'))">Assets\app.ico</ApplicationIcon>
+        <ApplicationManifest Condition="$([MSBuild]::IsOSPlatform('Windows'))">app.manifest</ApplicationManifest>
         <Version>1.0.0</Version>
         <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
-        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+        <BuiltInComInteropSupport Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</BuiltInComInteropSupport>
         <!-- 窗口使用带参数的构造函数在代码中创建，无需 XAML 运行时加载器所需的无参构造。 -->
         <NoWarn>$(NoWarn);AVLN3001</NoWarn>
+        <MacNativeSource>$(MSBuildProjectDirectory)/Native/macOS/RegionLivePreviewMac.m</MacNativeSource>
+        <MacNativeArchitecture Condition="'$(RuntimeIdentifier)' == 'osx-arm64'">arm64</MacNativeArchitecture>
+        <MacNativeArchitecture Condition="'$(RuntimeIdentifier)' == 'osx-x64'">x86_64</MacNativeArchitecture>
+        <MacNativeArchitecture Condition="'$(MacNativeArchitecture)' == '' and '$(NETCoreSdkRuntimeIdentifier)' == 'osx-arm64'">arm64</MacNativeArchitecture>
+        <MacNativeArchitecture Condition="'$(MacNativeArchitecture)' == '' and '$(NETCoreSdkRuntimeIdentifier)' == 'osx-x64'">x86_64</MacNativeArchitecture>
+        <MacNativeOutput>$(BaseIntermediateOutputPath)native/macos/$(MacNativeArchitecture)/libRegionLivePreviewMac.dylib</MacNativeOutput>
     </PropertyGroup>
 
     <ItemGroup>
@@ -26,5 +33,30 @@
         <PackageReference Include="Avalonia.Desktop" Version="11.3.18" />
         <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.18" />
     </ItemGroup>
+
+    <Target Name="BuildMacNativeBridge"
+            BeforeTargets="CoreCompile"
+            Condition="$([MSBuild]::IsOSPlatform('OSX'))"
+            Inputs="$(MacNativeSource);$(MSBuildProjectFullPath)"
+            Outputs="$(MacNativeOutput)">
+        <MakeDir Directories="$(BaseIntermediateOutputPath)native/macos/$(MacNativeArchitecture)" />
+        <Exec Command="xcrun --sdk macosx clang -arch &quot;$(MacNativeArchitecture)&quot; -fobjc-arc -fblocks -dynamiclib -mmacosx-version-min=14.0 -framework Cocoa -framework ScreenCaptureKit -framework CoreGraphics -framework CoreVideo -framework CoreMedia -framework Carbon -o &quot;$(MacNativeOutput)&quot; &quot;$(MacNativeSource)&quot;" />
+    </Target>
+
+    <Target Name="CopyMacNativeToOutput"
+            AfterTargets="Build"
+            Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+        <Copy SourceFiles="$(MacNativeOutput)"
+              DestinationFolder="$(OutDir)"
+              SkipUnchangedFiles="true" />
+    </Target>
+
+    <Target Name="CopyMacNativeToPublish"
+            AfterTargets="Publish"
+            Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+        <Copy SourceFiles="$(MacNativeOutput)"
+              DestinationFolder="$(PublishDir)"
+              SkipUnchangedFiles="true" />
+    </Target>
 
 </Project>

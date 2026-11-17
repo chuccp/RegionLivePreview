@@ -9,7 +9,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using RegionLivePreview.Core;
-using RegionLivePreview.Platform.Windows;
+using RegionLivePreview.Platform;
 using RegionLivePreview.Services;
 
 namespace RegionLivePreview.Views;
@@ -22,6 +22,7 @@ public partial class PreviewWindow : Window
     private readonly double _aspectRatio;
     private readonly int _fps;
     private readonly double _captureScale;
+    private readonly MonitorInfo? _monitor;
 
     private readonly Image _frameImage;
     private readonly Border _chromeBar;
@@ -52,10 +53,12 @@ public partial class PreviewWindow : Window
         _aspectRatio = Math.Max(1, options.Region.Width) / (double)Math.Max(1, options.Region.Height);
         _fps = options.Fps;
         _captureScale = options.CaptureScale;
+        _monitor = MonitorService.GetMonitorForRegion(options.Region);
 
-        Width = Math.Max(100, options.WindowWidth);
-        Height = Math.Max(60, options.WindowHeight);
+        Width = Math.Max(100, Math.Round(options.WindowWidth));
+        Height = Math.Max(60, Math.Round(options.WindowHeight));
         Position = new PixelPoint(options.WindowX, options.WindowY);
+        Topmost = options.Topmost;
         Opacity = Math.Clamp(options.Opacity, 0.3, 1.0);
         Title = $"RegionLivePreview 实时预览 {options.Region.Width}×{options.Region.Height}";
         Icon = UiAssets.AppIcon;
@@ -93,14 +96,15 @@ public partial class PreviewWindow : Window
 
     public PreviewWindowState CreateState()
     {
+        var physicalPosition = _monitor?.WindowToPhysicalPosition(Position) ?? Position;
         return new PreviewWindowState
         {
             RegionX = _region.X,
             RegionY = _region.Y,
             RegionWidth = _region.Width,
             RegionHeight = _region.Height,
-            WindowX = Position.X,
-            WindowY = Position.Y,
+            WindowX = physicalPosition.X,
+            WindowY = physicalPosition.Y,
             WindowWidth = double.IsFinite(Width) ? Width : 0,
             WindowHeight = double.IsFinite(Height) ? Height : 0,
             Opacity = Opacity,
@@ -208,9 +212,9 @@ public partial class PreviewWindow : Window
 
         Logger.Info($"预览窗口已打开：pos={Position} size={Width}x{Height} renderScaling={RenderScaling} native={WindowInterop.GetNativeBounds(this)} region={_region}");
 
-        if (!OperatingSystem.IsWindows())
+        if (!OperatingSystem.IsWindows() && !OperatingSystem.IsMacOS())
         {
-            ShowCaptureError("当前平台暂不支持屏幕捕获。此版本仅实现了 Windows 捕获后端。");
+            ShowCaptureError("当前平台暂不支持屏幕捕获。");
             return;
         }
 
@@ -273,7 +277,7 @@ public partial class PreviewWindow : Window
 
         _chromeBar.IsVisible = !enabled;
 
-        if (OperatingSystem.IsWindows() && TryGetPlatformHandle() is not null)
+        if (TryGetPlatformHandle() is not null)
         {
             WindowInterop.SetClickThrough(this, enabled);
         }
@@ -359,15 +363,18 @@ public partial class PreviewWindow : Window
             return;
         }
 
-        var scaling = RenderScaling > 0 ? RenderScaling : 1.0;
-        var centerX = Position.X + oldWidth * scaling / 2.0;
-        var centerY = Position.Y + oldHeight * scaling / 2.0;
+        // Windows Position uses desktop pixels while macOS exposes window positions in logical points.
+        var positionScale = OperatingSystem.IsMacOS()
+            ? 1.0
+            : RenderScaling > 0 ? RenderScaling : 1.0;
+        var centerX = Position.X + oldWidth * positionScale / 2.0;
+        var centerY = Position.Y + oldHeight * positionScale / 2.0;
 
         Width = newWidth;
         Height = newHeight;
 
-        var centerOffsetX = newWidth * scaling / 2.0;
-        var centerOffsetY = newHeight * scaling / 2.0;
+        var centerOffsetX = newWidth * positionScale / 2.0;
+        var centerOffsetY = newHeight * positionScale / 2.0;
         Position = new PixelPoint(
             (int)Math.Round(centerX - centerOffsetX),
             (int)Math.Round(centerY - centerOffsetY));

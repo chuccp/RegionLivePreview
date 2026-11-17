@@ -6,7 +6,7 @@ namespace RegionLivePreview.Platform.Windows;
 /// <summary>
 /// 开机自启：写入 HKCU\Software\Microsoft\Windows\CurrentVersion\Run。
 /// </summary>
-public static class AutoStartService
+public static class WindowsAutoStartService
 {
     private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
     private const string ValueName = "RegionLivePreview";

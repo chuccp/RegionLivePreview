@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using Avalonia.Threading;
 using RegionLivePreview.Core;
+using RegionLivePreview.Platform;
 
 namespace RegionLivePreview.Platform.Windows;
 
@@ -8,7 +9,7 @@ namespace RegionLivePreview.Platform.Windows;
 /// 使用 Win32 RegisterHotKey 注册系统级快捷键。
 /// 消息窗口使用消息专用（HWND_MESSAGE）窗口，不占用任务栏。
 /// </summary>
-public sealed class GlobalHotkeyService : IDisposable
+public sealed class WindowsGlobalHotkeyService : IGlobalHotkeyService
 {
     private const int HotkeyId = 0xB15;
 

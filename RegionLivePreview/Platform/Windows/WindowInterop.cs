@@ -2,7 +2,7 @@ using Avalonia.Controls;
 
 namespace RegionLivePreview.Platform.Windows;
 
-public static class WindowInterop
+public static class WindowsWindowInterop
 {
     public static string GetNativeBounds(Window window)
     {

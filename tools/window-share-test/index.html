@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RegionLivePreview 窗口共享测试</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #202124;
+      color: #e8eaed;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background:
+        radial-gradient(circle at 20% 10%, #303b57 0, transparent 32rem),
+        radial-gradient(circle at 90% 100%, #183f37 0, transparent 30rem),
+        #202124;
+    }
+
+    main {
+      width: min(1040px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 34px 0 48px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 34px;
+      color: #c4c7c5;
+      font-size: 14px;
+    }
+
+    .logo {
+      width: 28px;
+      height: 28px;
+      border: 6px solid #00ac47;
+      border-radius: 9px 4px 9px 4px;
+      transform: rotate(-8deg);
+    }
+
+    .badge {
+      margin-left: auto;
+      padding: 5px 10px;
+      border: 1px solid #5f6368;
+      border-radius: 999px;
+      color: #9aa0a6;
+      font-size: 12px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(280px, 0.85fr) minmax(340px, 1.35fr);
+      gap: 28px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid #3c4043;
+      border-radius: 20px;
+      background: rgba(32, 33, 36, 0.88);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .intro {
+      padding: 28px;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(25px, 3vw, 36px);
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+    }
+
+    p {
+      margin: 0;
+      color: #bdc1c6;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    ol {
+      margin: 24px 0 28px;
+      padding-left: 22px;
+      color: #aeb3b8;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .share-button {
+      width: 100%;
+      padding: 14px 20px;
+      border: 0;
+      border-radius: 999px;
+      background: #8ab4f8;
+      color: #202124;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .share-button:hover {
+      background: #aecbfa;
+    }
+
+    .share-button.stop {
+      background: #f28b82;
+    }
+
+    .share-button.stop:hover {
+      background: #f6aea9;
+    }
+
+    .share-button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    .stage {
+      min-height: 510px;
+      padding: 18px;
+    }
+
+    .video-shell {
+      position: relative;
+      display: grid;
+      min-height: 420px;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 14px;
+      background:
+        linear-gradient(135deg, rgba(138, 180, 248, 0.09), transparent 45%),
+        #17191b;
+    }
+
+    video {
+      display: none;
+      width: 100%;
+      max-height: 68vh;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .placeholder {
+      max-width: 310px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .window-icon {
+      width: 62px;
+      height: 46px;
+      margin: 0 auto 18px;
+      border: 2px solid #8ab4f8;
+      border-radius: 8px;
+      box-shadow: inset 0 9px 0 #8ab4f8;
+    }
+
+    .status {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      min-height: 48px;
+      margin-top: 16px;
+      padding: 13px 14px;
+      border: 1px solid #3c4043;
+      border-radius: 10px;
+      color: #c4c7c5;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .status::before {
+      flex: none;
+      width: 8px;
+      height: 8px;
+      margin-top: 6px;
+      border-radius: 50%;
+      background: #fbbc04;
+      content: "";
+    }
+
+    .status.ok::before {
+      background: #81c995;
+    }
+
+    .status.error {
+      border-color: #8c4a4a;
+      color: #f6aea9;
+    }
+
+    .status.error::before {
+      background: #f6aea9;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: 115px minmax(0, 1fr);
+      gap: 8px 14px;
+      margin-top: 14px;
+      color: #9aa0a6;
+      font-size: 12px;
+    }
+
+    .meta strong {
+      overflow-wrap: anywhere;
+      color: #e8eaed;
+      font-weight: 500;
+    }
+
+    @media (max-width: 760px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .stage {
+        min-height: 360px;
+      }
+
+      .video-shell {
+        min-height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="topbar">
+      <div class="logo" aria-hidden="true"></div>
+      <span>会议共享窗口模拟器</span>
+      <span class="badge">完全本地 · 不联网</span>
+    </div>
+
+    <div class="layout">
+      <section class="panel intro">
+        <h1>检查应用窗口<br>能否被选中</h1>
+        <p>
+          这个页面模拟 Google Meet 的“共享窗口”入口，调用的是 Chrome
+          相同的原生屏幕选择器。页面不会连接 Google，也不会创建会议。
+        </p>
+        <ol>
+          <li>保持 RegionLivePreview 预览窗口处于打开状态。</li>
+          <li>点击“共享屏幕”。</li>
+          <li>在系统选择器中切换到“窗口”。</li>
+          <li>查找以“RegionLivePreview 实时预览”开头的窗口。</li>
+        </ol>
+        <button id="shareButton" class="share-button" type="button">共享屏幕</button>
+      </section>
+
+      <section class="panel stage">
+        <div class="video-shell">
+          <div id="placeholder" class="placeholder">
+            <div class="window-icon" aria-hidden="true"></div>
+            <p>选择窗口后会在这里显示共享预览。</p>
+          </div>
+          <video id="preview" autoplay muted playsinline></video>
+        </div>
+
+        <div id="status" class="status" role="status" aria-live="polite">
+          尚未调用窗口选择器。
+        </div>
+
+        <div class="meta" id="meta" hidden>
+          <span>共享表面</span>
+          <strong id="surface">-</strong>
+          <span>窗口/来源名称</span>
+          <strong id="label">-</strong>
+          <span>分辨率</span>
+          <strong id="resolution">-</strong>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const shareButton = document.querySelector("#shareButton");
+    const preview = document.querySelector("#preview");
+    const placeholder = document.querySelector("#placeholder");
+    const status = document.querySelector("#status");
+    const meta = document.querySelector("#meta");
+    const surface = document.querySelector("#surface");
+    const label = document.querySelector("#label");
+    const resolution = document.querySelector("#resolution");
+
+    let stream = null;
+
+    function setStatus(message, state = "") {
+      status.textContent = message;
+      status.className = `status ${state}`.trim();
+    }
+
+    function stopStream() {
+      if (!stream) return;
+      for (const track of stream.getTracks()) {
+        track.stop();
+      }
+      stream = null;
+      preview.srcObject = null;
+      preview.style.display = "none";
+      placeholder.hidden = false;
+      meta.hidden = true;
+      shareButton.textContent = "共享屏幕";
+      shareButton.classList.remove("stop");
+    }
+
+    async function shareWindow() {
+      if (stream) {
+        stopStream();
+        setStatus("共享已停止，可以重新测试。");
+        return;
+      }
+
+      if (!navigator.mediaDevices?.getDisplayMedia) {
+        setStatus("当前浏览器不支持 getDisplayMedia，请使用 Chrome。", "error");
+        return;
+      }
+
+      stopStream();
+      shareButton.disabled = true;
+      setStatus("正在打开系统窗口选择器，请切换到“窗口”并查找 RegionLivePreview。");
+
+      try {
+        stream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            displaySurface: "window",
+            frameRate: { ideal: 30, max: 60 }
+          },
+          audio: false,
+          preferCurrentTab: false,
+          selfBrowserSurface: "exclude",
+          surfaceSwitching: "include",
+          monitorTypeSurfaces: "include"
+        });
+
+        const track = stream.getVideoTracks()[0];
+        const settings = track.getSettings();
+        preview.srcObject = stream;
+        preview.style.display = "block";
+        placeholder.hidden = true;
+        meta.hidden = false;
+        surface.textContent = settings.displaySurface || "window";
+        label.textContent = track.label || "未提供窗口名称";
+        resolution.textContent = settings.width && settings.height
+          ? `${settings.width} × ${settings.height}`
+          : "浏览器未提供";
+        setStatus(
+          track.label.includes("RegionLivePreview")
+            ? "验证成功：已选中 RegionLivePreview 预览窗口。"
+            : "已获得共享画面；请根据窗口名称确认选中的来源。",
+          "ok");
+
+        track.addEventListener("ended", () => {
+          setStatus("共享已停止，可以重新测试。");
+          stopStream();
+        }, { once: true });
+        shareButton.textContent = "停止共享";
+        shareButton.classList.add("stop");
+      } catch (error) {
+        const message = error?.name === "NotAllowedError"
+          ? "已取消选择，或浏览器没有屏幕共享权限。"
+          : `无法共享窗口：${error?.message || error}`;
+        setStatus(message, "error");
+        stopStream();
+      } finally {
+        shareButton.disabled = false;
+      }
+    }
+
+    shareButton.addEventListener("click", shareWindow);
+    window.addEventListener("beforeunload", stopStream);
+
+    if (window.location.protocol === "file:") {
+      shareButton.disabled = true;
+      setStatus(
+        "当前以 file:// 打开。请通过 README 中的 localhost 命令启动页面后再测试。",
+        "error");
+    }
+  </script>
+</body>
+</html>

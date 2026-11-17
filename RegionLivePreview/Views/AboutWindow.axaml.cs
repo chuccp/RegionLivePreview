@@ -9,6 +9,12 @@ public partial class AboutWindow : Window
     {
         InitializeComponent();
         Icon = UiAssets.AppIcon;
+
+        if (OperatingSystem.IsMacOS())
+        {
+            this.FindControl<TextBlock>("PlatformText")!.Text =
+                "macOS 14+（Apple Silicon / Intel）";
+        }
     }
 
     private void OnCloseClick(object? sender, RoutedEventArgs e)

@@ -40,7 +40,13 @@
             <TextBlock Grid.Row="0" Grid.Column="1" Text="1.0.0" Foreground="#D9FFFFFF" FontSize="12" />
 
             <TextBlock Grid.Row="1" Text="运行平台" Foreground="#8A93A6" FontSize="12" />
-            <TextBlock Grid.Row="1" Grid.Column="1" Text="Windows 10 21H2+ / Windows 11" Foreground="#D9FFFFFF" FontSize="12" />
+            <TextBlock x:Name="PlatformText"
+                       Grid.Row="1"
+                       Grid.Column="1"
+                       Text="Windows 10 21H2+ / Windows 11"
+                       Foreground="#D9FFFFFF"
+                       FontSize="12"
+                       TextWrapping="Wrap" />
 
             <TextBlock Grid.Row="2" Text="隐私" Foreground="#8A93A6" FontSize="12" />
             <TextBlock Grid.Row="2" Grid.Column="1" Text="纯本地运行，无网络请求、无画面上传、无遥测" Foreground="#D9FFFFFF" FontSize="12" TextWrapping="Wrap" />

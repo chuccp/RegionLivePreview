@@ -41,6 +41,7 @@ public sealed class PreviewManager
             CaptureScale = config.CaptureScale,
             Opacity = config.DefaultOpacity,
             ClickThrough = config.DefaultClickThrough,
+            Topmost = IsTopmostForSharing(),
             WindowX = geometry.Position.X,
             WindowY = geometry.Position.Y,
             WindowWidth = geometry.Width,
@@ -65,8 +66,9 @@ public sealed class PreviewManager
         var fallback = CalculateGeometry(region, monitor);
         var width = state.WindowWidth >= 80 ? state.WindowWidth : fallback.Width;
         var height = state.WindowHeight >= 50 ? state.WindowHeight : fallback.Height;
-        var position = MonitorService.IsPointOnAnyMonitor(new PixelPoint(state.WindowX + 8, state.WindowY + 8))
-            ? new PixelPoint(state.WindowX, state.WindowY)
+        var physicalPosition = new PixelPoint(state.WindowX, state.WindowY);
+        var position = MonitorService.IsPointOnAnyMonitor(new PixelPoint(physicalPosition.X + 8, physicalPosition.Y + 8))
+            ? monitor.PhysicalToWindowPosition(physicalPosition)
             : fallback.Position;
 
         var config = _app.Config;
@@ -77,6 +79,7 @@ public sealed class PreviewManager
             CaptureScale = config.CaptureScale,
             Opacity = state.Opacity,
             ClickThrough = state.ClickThrough,
+            Topmost = IsTopmostForSharing(),
             WindowX = position.X,
             WindowY = position.Y,
             WindowWidth = Math.Min(width, 4000),
@@ -126,6 +129,12 @@ public sealed class PreviewManager
         {
             window.Topmost = topmost;
         }
+    }
+
+    private static bool IsTopmostForSharing()
+    {
+        // Chrome/Meet excludes floating-level macOS windows from its sharing list.
+        return !OperatingSystem.IsMacOS();
     }
 
     public void SetClickThroughForAll(bool enabled)
@@ -260,7 +269,10 @@ public sealed class PreviewManager
                 Math.Clamp(centeredY, work.Y, work.Y + Math.Max(0, work.Height - pixelHeight)));
         }
 
-        return (width, height, position);
+        return (
+            Math.Round(width),
+            Math.Round(height),
+            monitor.PhysicalToWindowPosition(position));
     }
 
     private static bool IsInside(PixelRect container, PixelRect candidate)

@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using Avalonia;
 using RegionLivePreview.Core;
+using RegionLivePreview.Platform.Mac;
 using RegionLivePreview.Platform.Windows;
 
 namespace RegionLivePreview.Platform;
@@ -15,11 +16,40 @@ public sealed record MonitorInfo(
     int WorkWidth,
     int WorkHeight,
     double Scaling,
-    bool IsPrimary)
+    bool IsPrimary,
+    long NativeId = 0,
+    int? WindowOriginX = null,
+    int? WindowOriginY = null)
 {
     public PixelRect Bounds => new(X, Y, Width, Height);
 
     public PixelRect WorkArea => new(WorkX, WorkY, WorkWidth, WorkHeight);
+
+    public PixelPoint WindowPosition => new(WindowOriginX ?? X, WindowOriginY ?? Y);
+
+    public PixelPoint PhysicalToWindowPosition(PixelPoint point)
+    {
+        if (!OperatingSystem.IsMacOS())
+        {
+            return point;
+        }
+
+        return new PixelPoint(
+            WindowPosition.X + (int)Math.Round((point.X - X) / Scaling),
+            WindowPosition.Y + (int)Math.Round((point.Y - Y) / Scaling));
+    }
+
+    public PixelPoint WindowToPhysicalPosition(PixelPoint point)
+    {
+        if (!OperatingSystem.IsMacOS())
+        {
+            return point;
+        }
+
+        return new PixelPoint(
+            X + (int)Math.Round((point.X - WindowPosition.X) * Scaling),
+            Y + (int)Math.Round((point.Y - WindowPosition.Y) * Scaling));
+    }
 
     public bool Contains(PixelPoint point)
     {
@@ -31,6 +61,11 @@ public static class MonitorService
 {
     public static IReadOnlyList<MonitorInfo> GetMonitors()
     {
+        if (OperatingSystem.IsMacOS())
+        {
+            return GetMacMonitors();
+        }
+
         if (!OperatingSystem.IsWindows())
         {
             return Array.Empty<MonitorInfo>();
@@ -98,6 +133,37 @@ public static class MonitorService
             .ThenBy(static m => m.X)
             .ThenBy(static m => m.Y)
             .ToArray();
+    }
+
+    private static IReadOnlyList<MonitorInfo> GetMacMonitors()
+    {
+        try
+        {
+            return MacNative.GetScreens()
+                .Select(static screen => new MonitorInfo(
+                    screen.X,
+                    screen.Y,
+                    screen.Width,
+                    screen.Height,
+                    screen.WorkX,
+                    screen.WorkY,
+                    screen.WorkWidth,
+                    screen.WorkHeight,
+                    screen.Scaling > 0 ? screen.Scaling : 1.0,
+                    screen.IsPrimary != 0,
+                    screen.DisplayId,
+                    screen.WindowX,
+                    screen.WindowY))
+                .OrderByDescending(static monitor => monitor.IsPrimary)
+                .ThenBy(static monitor => monitor.X)
+                .ThenBy(static monitor => monitor.Y)
+                .ToArray();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("枚举 macOS 显示器失败。", ex);
+            return Array.Empty<MonitorInfo>();
+        }
     }
 
     public static MonitorInfo? Primary => GetMonitors().FirstOrDefault(static m => m.IsPrimary) ?? GetMonitors().FirstOrDefault();

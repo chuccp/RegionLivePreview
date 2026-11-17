@@ -44,7 +44,8 @@
                                     Margin="10,0,0,0"
                                     Click="OnRecordHotkeyClick" />
                         </Grid>
-                        <TextBlock Classes="fieldHint"
+                        <TextBlock x:Name="HotkeyHint"
+                                   Classes="fieldHint"
                                    Text="点击快捷键框或“重新录制”，然后按下新的组合键；Esc 取消录制。为避免误触，建议使用至少一个修饰键。" />
                         <TextBlock x:Name="HotkeyError"
                                    FontSize="12"
@@ -134,10 +135,11 @@
                     <StackPanel Spacing="12">
                         <TextBlock Text="系统" Classes="sectionTitle" />
                         <CheckBox x:Name="AutoStartCheck"
-                                  Content="开机自动启动（写入当前用户注册表）" />
+                                  Content="登录时自动启动" />
                         <CheckBox x:Name="LoggingCheck"
                                   Content="启用本地错误日志（默认关闭）" />
-                        <TextBlock Classes="fieldHint"
+                        <TextBlock x:Name="LogPathHint"
+                                   Classes="fieldHint"
                                    Text="日志保存在 %AppData%\RegionLivePreview\logs，只记录运行错误，不包含任何画面内容。" />
                     </StackPanel>
                 </Border>

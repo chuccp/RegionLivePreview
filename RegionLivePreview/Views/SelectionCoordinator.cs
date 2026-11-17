@@ -15,6 +15,7 @@ public sealed class SelectionCoordinator
     private MonitorInfo? _origin;
     private PixelPoint _startPhysical;
     private PixelPoint _endPhysical;
+    private PixelRect _captureBounds;
     private PixelRect _virtualBounds;
     private bool _ending;
 
@@ -69,10 +70,11 @@ public sealed class SelectionCoordinator
         }
 
         _origin = overlay.Monitor;
-        _startPhysical = ClampToVirtual(ToPhysical(overlay.Monitor, localPoint));
+        _captureBounds = overlay.CaptureBounds;
+        _startPhysical = ClampToDesktop(ToPhysical(overlay, localPoint));
         _endPhysical = _startPhysical;
         IsDragging = true;
-        Logger.Info($"选区起点：local={localPoint} physical={_startPhysical} monitor={overlay.Monitor.X},{overlay.Monitor.Y}@{overlay.Monitor.Scaling}x");
+        Logger.Info($"选区起点：local={localPoint} physical={_startPhysical} monitor={overlay.Monitor.X},{overlay.Monitor.Y}@{overlay.Monitor.Scaling}x capture={_captureBounds}");
 
         foreach (var item in _overlays)
         {
@@ -89,7 +91,7 @@ public sealed class SelectionCoordinator
             return;
         }
 
-        _endPhysical = ClampToVirtual(ToPhysical(overlay.Monitor, localPoint));
+        _endPhysical = ClampToDesktop(ToPhysical(overlay, localPoint));
         RefreshVisuals();
     }
 
@@ -185,14 +187,16 @@ public sealed class SelectionCoordinator
         return new PixelRect(left, top, Math.Max(0, right - left), Math.Max(0, bottom - top));
     }
 
-    private PixelPoint ToPhysical(MonitorInfo monitor, Point localPoint)
+    private static PixelPoint ToPhysical(SelectionOverlayWindow overlay, Point localPoint)
     {
+        var bounds = overlay.CaptureBounds;
+        var scale = overlay.Monitor.Scaling;
         return new PixelPoint(
-            monitor.X + (int)Math.Round(localPoint.X * monitor.Scaling),
-            monitor.Y + (int)Math.Round(localPoint.Y * monitor.Scaling));
+            bounds.X + (int)Math.Round(localPoint.X * scale),
+            bounds.Y + (int)Math.Round(localPoint.Y * scale));
     }
 
-    private PixelPoint ClampToVirtual(PixelPoint point)
+    private PixelPoint ClampToDesktop(PixelPoint point)
     {
         return new PixelPoint(
             Math.Clamp(point.X, _virtualBounds.X, _virtualBounds.X + _virtualBounds.Width - 1),
@@ -201,10 +205,10 @@ public sealed class SelectionCoordinator
 
     private static PixelRect GetVirtualBounds(IReadOnlyList<MonitorInfo> monitors)
     {
-        var left = monitors.Min(static m => m.X);
-        var top = monitors.Min(static m => m.Y);
-        var right = monitors.Max(static m => m.X + m.Width);
-        var bottom = monitors.Max(static m => m.Y + m.Height);
+        var left = monitors.Min(static monitor => monitor.X);
+        var top = monitors.Min(static monitor => monitor.Y);
+        var right = monitors.Max(static monitor => monitor.X + monitor.Width);
+        var bottom = monitors.Max(static monitor => monitor.Y + monitor.Height);
         return new PixelRect(left, top, Math.Max(1, right - left), Math.Max(1, bottom - top));
     }
 }

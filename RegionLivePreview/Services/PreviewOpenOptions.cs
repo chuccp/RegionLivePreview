@@ -14,6 +14,8 @@ public sealed class PreviewOpenOptions
 
     public bool ClickThrough { get; init; }
 
+    public bool Topmost { get; init; } = true;
+
     public int WindowX { get; init; }
 
     public int WindowY { get; init; }

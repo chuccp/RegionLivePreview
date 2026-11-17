@@ -19,6 +19,8 @@ public partial class SettingsWindow : Window
     private readonly CheckBox _autoStartCheck;
     private readonly CheckBox _loggingCheck;
     private readonly TextBlock _hotkeyError;
+    private readonly TextBlock _hotkeyHint;
+    private readonly TextBlock _logPathHint;
     private readonly TextBlock _statusText;
 
     private HotkeyDefinition _pendingHotkey;
@@ -41,8 +43,19 @@ public partial class SettingsWindow : Window
         _autoStartCheck = this.FindControl<CheckBox>("AutoStartCheck")!;
         _loggingCheck = this.FindControl<CheckBox>("LoggingCheck")!;
         _hotkeyError = this.FindControl<TextBlock>("HotkeyError")!;
+        _hotkeyHint = this.FindControl<TextBlock>("HotkeyHint")!;
+        _logPathHint = this.FindControl<TextBlock>("LogPathHint")!;
         _statusText = this.FindControl<TextBlock>("StatusText")!;
 
+        if (OperatingSystem.IsMacOS())
+        {
+            _hotkeyHint.Text = "点击快捷键框或“重新录制”，然后按下新的组合键；Esc 取消录制。"
+                + "其中 Alt 显示为 Option，Win 显示为 Command。"
+                + "为避免误触，建议使用至少一个修饰键。";
+            _autoStartCheck.Content = "登录时自动启动（LaunchAgent）";
+            _logPathHint.Text = "日志保存在 ~/Library/Application Support/RegionLivePreview/logs，"
+                + "只记录运行错误，不包含任何画面内容。";
+        }
         var config = app.Config;
         _pendingHotkey = config.Hotkey.Clone();
 
@@ -137,7 +150,9 @@ public partial class SettingsWindow : Window
         var isFunctionKey = virtualKey is >= 0x70 and <= 0x87;
         if (modifiers == HotkeyModifiers.None && !isFunctionKey)
         {
-            ShowHotkeyError("为避免误触，请至少按下一个修饰键（Ctrl / Alt / Shift / Win），或改用 F1–F12。");
+            ShowHotkeyError(
+                $"为避免误触，请至少按下一个修饰键（{HotkeyFormatter.ModifierHelp}），"
+                + "或改用 F1–F12。");
             return;
         }
 
@@ -262,9 +277,9 @@ public partial class SettingsWindow : Window
     {
         var parts = new List<string>(4);
         if ((modifiers & HotkeyModifiers.Control) != 0) parts.Add("Ctrl");
-        if ((modifiers & HotkeyModifiers.Alt) != 0) parts.Add("Alt");
+        if ((modifiers & HotkeyModifiers.Alt) != 0) parts.Add(OperatingSystem.IsMacOS() ? "Option" : "Alt");
         if ((modifiers & HotkeyModifiers.Shift) != 0) parts.Add("Shift");
-        if ((modifiers & HotkeyModifiers.Win) != 0) parts.Add("Win");
+        if ((modifiers & HotkeyModifiers.Win) != 0) parts.Add(OperatingSystem.IsMacOS() ? "Command" : "Win");
         return string.Join(" + ", parts);
     }
 }

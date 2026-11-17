@@ -5,7 +5,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using RegionLivePreview.Core;
 using RegionLivePreview.Platform;
-using RegionLivePreview.Platform.Windows;
+using RegionLivePreview.Platform.Mac;
 using RegionLivePreview.Services;
 using RegionLivePreview.Views;
 
@@ -16,7 +16,7 @@ public partial class App : Application
     private readonly ConfigService _configService = new();
     private TrayIcon? _trayIcon;
     private NativeMenuItem? _newSelectionItem;
-    private GlobalHotkeyService? _hotkeyService;
+    private IGlobalHotkeyService? _hotkeyService;
     private PreviewManager? _previewManager;
     private SelectionCoordinator? _selection;
     private SettingsWindow? _settingsWindow;
@@ -43,7 +43,11 @@ public partial class App : Application
             desktop.Exit += OnDesktopExit;
 
             Config = _configService.Load();
-            Logger.Enabled = Config.LoggingEnabled;
+            Logger.Enabled = Config.LoggingEnabled
+                || string.Equals(
+                    Environment.GetEnvironmentVariable("REGIONLIVEPREVIEW_LOG"),
+                    "1",
+                    StringComparison.Ordinal);
             Logger.Info("RegionLivePreview 启动。");
 
             _previewManager = new PreviewManager(this);
@@ -55,10 +59,7 @@ public partial class App : Application
             InitializeHotkey();
             SyncAutoStart();
 
-            if (OperatingSystem.IsWindows())
-            {
-                RestorePreviews();
-            }
+            RestorePreviews();
 
             Dispatcher.UIThread.Post(() =>
             {
@@ -83,11 +84,18 @@ public partial class App : Application
             return;
         }
 
-        if (!OperatingSystem.IsWindows())
+        if (!OperatingSystem.IsWindows() && !OperatingSystem.IsMacOS())
         {
             MessageDialog.Show(
                 "暂不支持",
-                "当前版本仅提供 Windows 屏幕捕获。macOS 屏幕捕获后端将在后续版本提供。");
+                "当前版本仅支持 Windows 10/11 与 macOS 14+。");
+            return;
+        }
+
+        if (OperatingSystem.IsMacOS()
+            && !MacScreenCaptureAccess.EnsureAccess(out var permissionError))
+        {
+            MessageDialog.Show("需要屏幕录制权限", permissionError ?? "无法获得屏幕录制权限。");
             return;
         }
 
@@ -95,7 +103,7 @@ public partial class App : Application
 
         if (!_selection.Begin())
         {
-            _previewManager.SetTopmost(true);
+            RestoreConfiguredTopmost();
             MessageDialog.Show("无法开始选区", "未检测到可用显示器，请稍后重试。");
         }
     }
@@ -304,7 +312,7 @@ public partial class App : Application
 
     private void InitializeHotkey()
     {
-        _hotkeyService = new GlobalHotkeyService();
+        _hotkeyService = GlobalHotkeyServiceFactory.Create();
         _hotkeyService.Pressed += BeginSelection;
 
         if (_hotkeyService.TryRegister(Config.Hotkey, out var error))
@@ -321,7 +329,7 @@ public partial class App : Application
 
     private void SyncAutoStart()
     {
-        // 同步注册表路径，避免程序被移动后仍指向旧位置。
+        // 同步自启路径，避免程序被移动后仍指向旧位置。
         if (!AutoStartService.TrySetEnabled(Config.AutoStart, out var error) && error is not null)
         {
             Logger.Warn("同步开机自启状态失败：" + error);
@@ -343,7 +351,8 @@ public partial class App : Application
 
     private void AutoStartSelectionIfNeeded()
     {
-        if (!Config.AutoOpenSelectionOnStartup || !OperatingSystem.IsWindows())
+        if (!Config.AutoOpenSelectionOnStartup
+            || (!OperatingSystem.IsWindows() && !OperatingSystem.IsMacOS()))
         {
             return;
         }
@@ -412,7 +421,7 @@ public partial class App : Application
 
     private void OnSelectionCompleted(SelectionResult result)
     {
-        _previewManager?.SetTopmost(true);
+        RestoreConfiguredTopmost();
         Logger.Info($"选区完成：{result.Region.Width}x{result.Region.Height} @ {result.Region.X},{result.Region.Y}");
 
         // 等遮罩窗口从屏幕上消失后再启动捕获，避免首帧把遮罩拍进预览。
@@ -434,7 +443,12 @@ public partial class App : Application
 
     private void OnSelectionCancelled()
     {
-        _previewManager?.SetTopmost(true);
+        RestoreConfiguredTopmost();
+    }
+
+    private void RestoreConfiguredTopmost()
+    {
+        _previewManager?.SetTopmost(!OperatingSystem.IsMacOS());
     }
 
     private void UpdateTrayHotkeyLabel()
