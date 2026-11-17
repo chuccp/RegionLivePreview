@@ -21,9 +21,6 @@
       <Directory Id="ProgramFiles64Folder">
         <Directory Id="INSTALLFOLDER" Name="RegionLivePreview" />
       </Directory>
-      <Directory Id="ProgramMenuFolder">
-        <Directory Id="ApplicationProgramsFolder" Name="RegionLivePreview" />
-      </Directory>
     </Directory>
 
     <DirectoryRef Id="INSTALLFOLDER">
@@ -34,27 +31,8 @@
       </Component>
     </DirectoryRef>
 
-    <DirectoryRef Id="ApplicationProgramsFolder">
-      <Component Id="ApplicationShortcut" Guid="*" Win64="yes">
-        <Shortcut Id="StartMenuShortcut"
-                  Name="RegionLivePreview"
-                  Description="区域实时悬浮预览"
-                  Target="[INSTALLFOLDER]RegionLivePreview.exe"
-                  WorkingDirectory="INSTALLFOLDER"
-                  Icon="AppIcon" />
-        <RemoveFolder Id="RemoveApplicationProgramsFolder" On="uninstall" />
-        <RegistryValue Root="HKLM"
-                       Key="Software\RegionLivePreview"
-                       Name="Installed"
-                       Type="integer"
-                       Value="1"
-                       KeyPath="yes" />
-      </Component>
-    </DirectoryRef>
-
     <Feature Id="ProductFeature" Title="RegionLivePreview" Level="1">
       <ComponentRef Id="MainExecutable" />
-      <ComponentRef Id="ApplicationShortcut" />
     </Feature>
 
     <UIRef Id="WixUI_InstallDir" />
