@@ -123,6 +123,10 @@
                                   Content="新预览窗口默认开启鼠标穿透" />
                         <CheckBox x:Name="RestorePreviewsCheck"
                                   Content="启动时恢复上次的预览窗口" />
+                        <CheckBox x:Name="AutoOpenSelectionCheck"
+                                  Content="启动时自动进入选区模式" />
+                        <TextBlock Classes="fieldHint"
+                                   Text="关闭后启动只驻留托盘；仍可按全局快捷键开始选区。开机自启时不会自动进入选区。" />
                     </StackPanel>
                 </Border>
 

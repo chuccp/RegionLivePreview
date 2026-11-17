@@ -15,6 +15,7 @@ public partial class SettingsWindow : Window
     private readonly TextBlock _opacityLabel;
     private readonly CheckBox _defaultClickThroughCheck;
     private readonly CheckBox _restorePreviewsCheck;
+    private readonly CheckBox _autoOpenSelectionCheck;
     private readonly CheckBox _autoStartCheck;
     private readonly CheckBox _loggingCheck;
     private readonly TextBlock _hotkeyError;
@@ -36,6 +37,7 @@ public partial class SettingsWindow : Window
         _opacityLabel = this.FindControl<TextBlock>("OpacityLabel")!;
         _defaultClickThroughCheck = this.FindControl<CheckBox>("DefaultClickThroughCheck")!;
         _restorePreviewsCheck = this.FindControl<CheckBox>("RestorePreviewsCheck")!;
+        _autoOpenSelectionCheck = this.FindControl<CheckBox>("AutoOpenSelectionCheck")!;
         _autoStartCheck = this.FindControl<CheckBox>("AutoStartCheck")!;
         _loggingCheck = this.FindControl<CheckBox>("LoggingCheck")!;
         _hotkeyError = this.FindControl<TextBlock>("HotkeyError")!;
@@ -63,6 +65,7 @@ public partial class SettingsWindow : Window
         _opacityLabel.Text = $"{config.DefaultOpacity:P0}";
         _defaultClickThroughCheck.IsChecked = config.DefaultClickThrough;
         _restorePreviewsCheck.IsChecked = config.RestorePreviewsOnStartup;
+        _autoOpenSelectionCheck.IsChecked = config.AutoOpenSelectionOnStartup;
         _autoStartCheck.IsChecked = config.AutoStart;
         _loggingCheck.IsChecked = config.LoggingEnabled;
 
@@ -189,6 +192,7 @@ public partial class SettingsWindow : Window
             AutoStart = _autoStartCheck.IsChecked == true,
             LoggingEnabled = _loggingCheck.IsChecked == true,
             RestorePreviewsOnStartup = _restorePreviewsCheck.IsChecked == true,
+            AutoOpenSelectionOnStartup = _autoOpenSelectionCheck.IsChecked == true,
             Language = "zh-CN",
             OpenPreviews = _app.Config.OpenPreviews.ToList()
         };

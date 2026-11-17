@@ -21,6 +21,9 @@ public sealed class AppConfig
 
     public bool RestorePreviewsOnStartup { get; set; } = true;
 
+    /// <summary>启动后是否自动进入选区模式。</summary>
+    public bool AutoOpenSelectionOnStartup { get; set; } = true;
+
     public string Language { get; set; } = "zh-CN";
 
     public List<PreviewWindowState> OpenPreviews { get; set; } = new();

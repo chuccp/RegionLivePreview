@@ -46,7 +46,8 @@ public static class AutoStartService
                     return false;
                 }
 
-                var value = $"\"{executable}\"";
+                // 开机自启时带上 --autostart，避免登录后自动弹出全屏选区。
+                var value = $"\"{executable}\" --autostart";
                 var bytes = Encoding.Unicode.GetBytes(value + '\0');
                 result = NativeMethods.RegSetValueExW(
                     key,

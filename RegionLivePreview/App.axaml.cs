@@ -60,7 +60,11 @@ public partial class App : Application
                 RestorePreviews();
             }
 
-            Dispatcher.UIThread.Post(ApplyStartupArguments, DispatcherPriority.Background);
+            Dispatcher.UIThread.Post(() =>
+            {
+                ApplyStartupArguments();
+                AutoStartSelectionIfNeeded();
+            }, DispatcherPriority.Background);
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -335,6 +339,30 @@ public partial class App : Application
         {
             _previewManager?.Restore(state);
         }
+    }
+
+    private void AutoStartSelectionIfNeeded()
+    {
+        if (!Config.AutoOpenSelectionOnStartup || !OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        var args = Environment.GetCommandLineArgs().Skip(1).ToArray();
+
+        // --autostart、--settings、--preview 等启动方式不自动弹出选区。
+        if (args.Any(static arg => arg.StartsWith("--", StringComparison.Ordinal)))
+        {
+            return;
+        }
+
+        // 快捷键注册失败时已有错误提示，避免选区遮罩和错误弹窗叠加。
+        if (_hotkeyService?.Current is null)
+        {
+            return;
+        }
+
+        BeginSelection();
     }
 
     private void ApplyStartupArguments()
